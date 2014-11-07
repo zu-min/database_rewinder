@@ -16,7 +16,11 @@ module DatabaseRewinder
     end
 
     def create_cleaner(connection_name)
-      config = database_configuration[connection_name] or raise %Q[Database configuration named "#{connection_name}" is not configured.]
+      config =  database_configuration[connection_name.to_sym] ||
+                  database_configuration[Padrino.env][connection_name.to_s] ||
+                  database_configuration[Padrino.env][connection_name.to_s.split('.')[0]][connection_name.to_s.split('.')[1]]
+
+      raise %Q[Database configuration named "#{connection_name}" is not configured.] unless config
 
       Cleaner.new(config: config, connection_name: connection_name, only: @only, except: @except).tap {|c| @cleaners << c}
     end
